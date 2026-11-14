@@ -1,0 +1,22 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: statistics-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${JWT_SECRET}
+fitness:
+  service:
+    url: ${FITNESS_SERVICE_URL:http://localhost:8082}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

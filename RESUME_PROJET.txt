@@ -1,0 +1,39 @@
+RÉSUMÉ DU PROJET FORMA+
+
+Technologies
+------------
+- Frontend Angular responsive en français.
+- Backend REST composé de quatre services Spring Boot.
+- MySQL avec bases fitness_auth et fitness_data.
+- Authentification par JWT Bearer et mots de passe BCrypt.
+- Swagger/OpenAPI et collection de tests API Postman.
+- HTTPS/TLS activable sur l’API Gateway avec le profil tls.
+- Git/GitHub pour le versionnement ; Jenkins est facultatif.
+
+Architecture locale sans Docker
+-------------------------------
+- API Gateway : port 8080 (HTTPS 8443 avec le profil tls).
+- Auth service : port 8081.
+- Fitness service : port 8082.
+- Statistics service : port 8083.
+- Angular : http://localhost:4200.
+- MySQL local : bases fitness_auth et fitness_data.
+
+Préparer MySQL avec backend/mysql/init.sql, puis démarrer les quatre services
+avec Maven depuis backend/pom.xml. Les commandes et variables PowerShell sont
+détaillées dans README.md. Le proxy Angular transmet /api à la passerelle.
+
+API et tests
+------------
+- Swagger : http://localhost:8080/swagger-ui/index.html
+- Collection Postman : postman/forma-fitness.postman_collection.json
+- Les opérations protégées exigent un JWT. Les données de fitness sont
+  filtrées par compte.
+
+Sécurité
+--------
+Le profil TLS local utilise un certificat autosigné à générer avec keytool.
+Ce certificat est ignoré par Git. Pour la production, utiliser un certificat
+de confiance, des secrets gérés de manière sécurisée, des migrations de base,
+des sauvegardes et une configuration TLS adaptée aux communications internes.
+Le JWT est actuellement conservé dans localStorage.

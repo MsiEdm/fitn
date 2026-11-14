@@ -1,0 +1,365 @@
+{
+  "info": {
+    "_postman_id": "d5a89e99-b027-4594-9f48-58ea9c2a911e",
+    "name": "forma+ — API Fitness",
+    "description": "Parcours de test du point d’entrée API local. Les requêtes enregistrent automatiquement le jeton et les identifiants créés.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "email", "value": "" },
+    { "key": "username", "value": "" },
+    { "key": "password", "value": "FormaTest2026!" },
+    { "key": "workoutId", "value": "" },
+    { "key": "goalId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Accès protégé sans jeton — 401",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "url": "{{baseUrl}}/api/workouts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Une requête non authentifiée est refusée', function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Créer un compte",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('email', `forma-${suffix}@example.test`);",
+              "pm.collectionVariables.set('username', `forma-${suffix}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Le compte est créé', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('token', body.accessToken);",
+              "pm.test('Un JWT Bearer est retourné', function () { pm.expect(body.tokenType).to.eql('Bearer'); pm.expect(body.accessToken).to.be.a('string'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/auth/register"
+      }
+    },
+    {
+      "name": "Se connecter",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La connexion réussit', function () { pm.response.to.have.status(200); });",
+              "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Créer une séance",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('workoutDate', new Date().toISOString().slice(0, 10));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La séance est créée', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('workoutId', String(pm.response.json().id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"COURSE\",\n  \"durationMinutes\": 45,\n  \"caloriesBurned\": 420,\n  \"date\": \"{{workoutDate}}\",\n  \"notes\": \"Footing de test\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/workouts"
+      }
+    },
+    {
+      "name": "Lister les séances",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/workouts" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La liste est accessible avec un JWT', function () { pm.response.to.have.status(200); pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Détail d’une séance",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/workouts/{{workoutId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Le détail de la séance est retourné', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('workoutId'))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Modifier la séance",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"COURSE\",\n  \"durationMinutes\": 50,\n  \"caloriesBurned\": 460,\n  \"date\": \"{{workoutDate}}\",\n  \"notes\": \"Séance mise à jour\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/workouts/{{workoutId}}"
+      }
+    },
+    {
+      "name": "Créer un objectif",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const deadline = new Date(); deadline.setDate(deadline.getDate() + 60); pm.collectionVariables.set('deadline', deadline.toISOString().slice(0, 10));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('L’objectif est créé', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('goalId', String(pm.response.json().id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Courir 10 km\",\n  \"startValue\": 0,\n  \"currentValue\": 5,\n  \"targetValue\": 10,\n  \"unit\": \"km\",\n  \"deadline\": \"{{deadline}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/goals"
+      }
+    },
+    {
+      "name": "Lister les objectifs",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/goals" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Les objectifs sont accessibles', function () { pm.response.to.have.status(200); pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mettre à jour un objectif",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Courir 10 km\",\n  \"startValue\": 0,\n  \"currentValue\": 7,\n  \"targetValue\": 10,\n  \"unit\": \"km\",\n  \"deadline\": \"{{deadline}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/goals/{{goalId}}"
+      }
+    },
+    {
+      "name": "Résumé statistique",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/stats/summary" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Le résumé est retourné', function () { pm.response.to.have.status(200); pm.expect(pm.response.json()).to.have.property('totalWorkouts'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statistiques hebdomadaires",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/stats/weekly" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Les statistiques hebdomadaires contiennent 7 jours', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().daily).to.have.length(7); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Créer un autre compte pour tester l’isolation",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('otherEmail', `autre-${suffix}@example.test`);",
+              "pm.collectionVariables.set('otherUsername', `autre-${suffix}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Le second compte est créé', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('otherToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{otherUsername}}\",\n  \"email\": \"{{otherEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/auth/register"
+      }
+    },
+    {
+      "name": "Un autre compte ne peut pas lire cette séance",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{otherToken}}", "type": "string" }]
+        },
+        "method": "GET",
+        "url": "{{baseUrl}}/api/workouts/{{workoutId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Les données d’un autre utilisateur sont introuvables', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Supprimer la séance",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/workouts/{{workoutId}}" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La séance est supprimée', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Supprimer l’objectif",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/goals/{{goalId}}" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('L’objectif est supprimé', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

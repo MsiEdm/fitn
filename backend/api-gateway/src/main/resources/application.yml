@@ -1,0 +1,65 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: authentication
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+        - id: fitness-workouts
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/workouts/**
+        - id: fitness-goals
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/goals/**
+        - id: statistics
+          uri: ${STATISTICS_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/stats/**
+        - id: fitness-openapi
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/v3/api-docs
+        - id: fitness-openapi-nested
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/v3/api-docs/**
+        - id: fitness-swagger-ui
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/swagger-ui/**
+        - id: fitness-swagger-page
+          uri: ${FITNESS_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/swagger-ui.html
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - http://localhost:4200
+              - http://127.0.0.1:4200
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+            maxAge: 3600
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
