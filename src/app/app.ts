@@ -1,8 +1,12 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService, FitnessApi, FitnessGoal, WeeklyStats, Workout } from './api';
+import { AuthPage } from './pages/auth-page';
+import { DashboardPage } from './pages/dashboard-page';
+import { GoalsPage } from './pages/goals-page';
+import { StatsPage } from './pages/stats-page';
+import { WorkoutsPage } from './pages/workouts-page';
 
 type Section = 'dashboard' | 'workouts' | 'goals' | 'stats';
 
@@ -10,17 +14,26 @@ type WorkoutType = Workout['type'];
 const workoutTypes: WorkoutType[] = ['Course', 'Musculation', 'Vélo', 'Natation', 'Yoga', 'Autre'];
 
 @Component({
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AuthPage, DashboardPage, GoalsPage, StatsPage, WorkoutsPage],
   selector: 'app-root',
   templateUrl: './app.html',
 })
-export class App implements OnInit {
+export class App {
   protected readonly auth = inject(AuthService);
   private readonly api = inject(FitnessApi);
   protected readonly section = signal<Section>('dashboard');
   protected readonly workouts = signal<Workout[]>([]);
   protected readonly goals = signal<FitnessGoal[]>([]);
   protected readonly weeklyStats = signal<WeeklyStats | null>(null);
+  private readonly authDataEffect = effect(() => {
+    if (this.auth.isAuthenticated()) {
+      this.loadData();
+    } else {
+      this.workouts.set([]);
+      this.goals.set([]);
+      this.weeklyStats.set(null);
+    }
+  });
   protected readonly workoutTypes = workoutTypes;
   protected readonly today = new Date();
   protected readonly weekStart = this.startOfWeek(this.today);
@@ -30,6 +43,8 @@ export class App implements OnInit {
   protected readonly editingWorkoutId = signal<string | null>(null);
   protected readonly editingGoalId = signal<string | null>(null);
   protected readonly registerMode = signal(false);
+  protected readonly verificationPending = signal(false);
+  protected verificationCode = '';
   protected readonly requestBusy = signal(false);
   protected readonly errorMessage = signal('');
   protected authForm = { username: '', email: '', password: '' };
@@ -37,11 +52,9 @@ export class App implements OnInit {
   protected workoutForm: Omit<Workout, 'id'> = this.emptyWorkout();
   protected goalForm: Omit<FitnessGoal, 'id' | 'status'> = this.emptyGoal();
 
-  ngOnInit(): void {
-    if (this.auth.isAuthenticated()) this.loadData();
-  }
-
   protected toggleAuthMode(): void {
+    this.verificationPending.set(false);
+    this.verificationCode = '';
     this.registerMode.update((mode) => !mode);
     this.errorMessage.set('');
   }
@@ -50,16 +63,27 @@ export class App implements OnInit {
     if (this.requestBusy()) return;
     this.requestBusy.set(true);
     this.errorMessage.set('');
-    const request = this.registerMode()
-      ? this.auth.register(
-          this.authForm.username.trim(),
-          this.authForm.email.trim(),
-          this.authForm.password,
-        )
-      : this.auth.login(this.authForm.email.trim(), this.authForm.password);
+    const email = this.authForm.email.trim();
+    const request = this.verificationPending()
+      ? this.auth.verifyEmailCode(email, this.verificationCode.trim())
+      : this.registerMode()
+        ? this.auth.register(this.authForm.username.trim(), email, this.authForm.password)
+        : this.auth.login(email, this.authForm.password);
     request.subscribe({
       next: () => {
         this.requestBusy.set(false);
+        if (this.verificationPending()) {
+          this.verificationPending.set(false);
+          this.verificationCode = '';
+          this.errorMessage.set('');
+          this.authForm.password = '';
+          return;
+        }
+        if (this.registerMode() && !this.auth.isAuthenticated()) {
+          this.verificationPending.set(true);
+          this.errorMessage.set('Un code de vérification vient d’être envoyé à votre adresse e-mail.');
+          return;
+        }
         this.authForm.password = '';
         this.loadData();
       },
@@ -68,6 +92,28 @@ export class App implements OnInit {
         this.errorMessage.set(this.describeError(error));
       },
     });
+  }
+
+  protected resendVerificationCode(): void {
+    if (this.requestBusy()) return;
+    this.requestBusy.set(true);
+    this.errorMessage.set('');
+    this.auth.resendEmailCode(this.authForm.email.trim()).subscribe({
+      next: () => {
+        this.requestBusy.set(false);
+        this.errorMessage.set('Un nouveau code de vérification a été envoyé.');
+      },
+      error: (error: unknown) => {
+        this.requestBusy.set(false);
+        this.errorMessage.set(this.describeError(error));
+      },
+    });
+  }
+
+  protected cancelVerification(): void {
+    this.verificationPending.set(false);
+    this.verificationCode = '';
+    this.errorMessage.set('');
   }
 
   protected logout(): void {
@@ -268,13 +314,12 @@ export class App implements OnInit {
     return Math.max(0, Math.min(100, Math.round(progress * 100)));
   }
 
-  protected formatDate(value: string): string {
-    return this.parseDate(value).toLocaleDateString('fr-FR', {
+  protected readonly formatDate = (value: string): string =>
+    this.parseDate(value).toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     });
-  }
 
   protected get greeting(): string {
     const hour = this.today.getHours();
@@ -326,19 +371,7 @@ export class App implements OnInit {
   }
 
   private describeError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (typeof error.error === 'object' && error.error !== null) {
-        const body = error.error as { message?: unknown; error?: unknown; detail?: unknown };
-        if (typeof body.message === 'string') return body.message;
-        if (typeof body.error === 'string') return body.error;
-        if (typeof body.detail === 'string') return body.detail;
-      }
-      if (error.status === 0)
-        return 'Le serveur est injoignable. Vérifiez que les services sont démarrés.';
-      if (error.status === 502 || error.status === 503 || error.status === 504)
-        return 'L’API n’est pas démarrée. Démarrez MySQL, puis les services Spring Boot et la passerelle API.';
-      return `La requête a échoué (HTTP ${error.status}).`;
-    }
+    if (error instanceof Error) return error.message;
     return 'Une erreur inattendue est survenue.';
   }
 

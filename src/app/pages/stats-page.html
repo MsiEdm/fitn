@@ -1,0 +1,38 @@
+<section class="dashboard-grid">
+  <app-activity-chart [weekMinutes]="weekMinutes" [chartDays]="chartDays"></app-activity-chart>
+</section>
+<section class="stats-extra">
+  <div class="stats-note">
+    <span>✦</span>
+    <div>
+      <strong>La régularité, votre meilleure alliée.</strong>
+      <p>
+        Chaque séance enregistrée nourrit ces statistiques. Revenez régulièrement pour observer
+        votre progression.
+      </p>
+    </div>
+  </div>
+  <article class="panel stats-list-panel">
+    <div class="panel-heading">
+      <div>
+        <div class="panel-kicker">CE MOIS-CI</div>
+        <h3>Votre bilan mensuel</h3>
+      </div>
+    </div>
+    <div class="monthly-stats">
+      <div>
+        <span>Entraînements</span><strong>{{ monthWorkoutsCount }}</strong>
+      </div>
+      <div>
+        <span>Calories brûlées</span
+        ><strong>{{ monthCalories | number }} <small>kcal</small></strong>
+      </div>
+      <div>
+        <span>Temps d’activité</span><strong>{{ monthMinutes }} <small>min</small></strong>
+      </div>
+      <div>
+        <span>Objectifs actifs</span><strong>{{ goalCount }}</strong>
+      </div>
+    </div>
+  </article>
+</section>

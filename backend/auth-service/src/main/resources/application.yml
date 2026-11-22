@@ -5,7 +5,7 @@ spring:
     name: auth-service
   datasource:
     url: ${AUTH_DB_URL:jdbc:mysql://localhost:3306/fitness_auth?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    username: ${MYSQL_USER:fitness}
+    username: ${MYSQL_USER:root}
     password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:

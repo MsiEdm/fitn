@@ -1,0 +1,27 @@
+<article class="panel activity-panel">
+  <div class="panel-heading">
+    <div>
+      <div class="panel-kicker">VOTRE CONSTANCE</div>
+      <h3>Temps d’activité</h3>
+    </div>
+    <span class="period-pill">Cette semaine <span>⌄</span></span>
+  </div>
+  <div class="chart-summary">
+    <strong>{{ weekMinutes }}<small> min</small></strong
+    ><span>au total cette semaine</span>
+  </div>
+  <div class="activity-chart">
+    <div class="chart-grid">
+      <span>60</span><span>45</span><span>30</span><span>15</span><span>0</span>
+    </div>
+    <div class="chart-bars">
+      <div class="bar-column" *ngFor="let day of chartDays">
+        <div class="bar-track">
+          <div class="bar-fill" [class.bar-today]="day.isToday" [style.height.%]="day.height"></div>
+        </div>
+        <span [class.today-label-chart]="day.isToday">{{ day.label }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="chart-legend"><span></span> Minutes d’entraînement</div>
+</article>

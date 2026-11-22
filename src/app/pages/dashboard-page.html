@@ -1,0 +1,120 @@
+<section class="hero-card">
+  <div class="hero-content">
+    <div class="hero-tag"><span></span> VOTRE RENDEZ-VOUS AVEC VOUS-MÊME</div>
+    <h2>Le progrès ne fait<br />pas de bruit. <em>Il se construit.</em></h2>
+    <p>
+      Vous avez déjà accompli {{ weekWorkoutsCount }} séance{{ weekWorkoutsCount === 1 ? '' : 's' }}
+      cette semaine. Gardez le rythme, vous êtes sur la bonne voie.
+    </p>
+    <button class="button button-light" (click)="addWorkout.emit()">
+      Enregistrer ma séance <span>→</span>
+    </button>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="hero-orbit orbit-one"></div>
+    <div class="hero-orbit orbit-two"></div>
+    <div class="hero-sun"></div>
+    <div class="hero-leaf leaf-one"></div>
+    <div class="hero-leaf leaf-two"></div>
+    <div class="hero-ground"></div>
+    <div class="hero-number">01<span> / 07</span></div>
+  </div>
+  <span class="hero-decoration">✳</span>
+</section>
+
+<section class="metrics-grid" aria-label="Résumé de l’activité">
+  <article class="metric-card">
+    <div class="metric-top">
+      <span class="metric-icon peach">↗</span><span class="metric-period">CETTE SEMAINE</span>
+    </div>
+    <div class="metric-value">
+      {{ weekWorkoutsCount }}<small> séance{{ weekWorkoutsCount === 1 ? '' : 's' }}</small>
+    </div>
+    <div class="metric-foot">
+      <span class="metric-dot green-dot"></span>{{ weekMinutes }} min d’activité au total
+    </div>
+    <div class="metric-accent peach-accent"></div>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top">
+      <span class="metric-icon yellow">✦</span><span class="metric-period">CETTE SEMAINE</span>
+    </div>
+    <div class="metric-value">{{ weekCalories | number }}<small> kcal</small></div>
+    <div class="metric-foot"><span class="metric-dot orange-dot"></span>Énergie dépensée</div>
+    <div class="metric-accent yellow-accent"></div>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top">
+      <span class="metric-icon lavender">◎</span><span class="metric-period">CE MOIS-CI</span>
+    </div>
+    <div class="metric-value">
+      {{ monthWorkoutsCount }}<small> séance{{ monthWorkoutsCount === 1 ? '' : 's' }}</small>
+    </div>
+    <div class="metric-foot">
+      <span class="metric-dot purple-dot"></span>{{ monthCalories | number }} kcal brûlées
+    </div>
+    <div class="metric-accent lavender-accent"></div>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top">
+      <span class="metric-icon mint">◷</span
+      ><span class="metric-period">TEMPS TOTAL · SEMAINE</span>
+    </div>
+    <div class="metric-value">{{ weekMinutes }}<small> min</small></div>
+    <div class="metric-foot">
+      <span class="metric-dot green-dot"></span>Temps en mouvement enregistré
+    </div>
+    <div class="metric-accent mint-accent"></div>
+  </article>
+</section>
+
+<section class="dashboard-grid">
+  <app-activity-chart [weekMinutes]="weekMinutes" [chartDays]="chartDays"></app-activity-chart>
+  <article class="panel goals-panel">
+    <div class="panel-heading">
+      <div>
+        <div class="panel-kicker">CAP SUR VOS ENVIES</div>
+        <h3>Objectifs en cours</h3>
+      </div>
+      <button class="text-link" (click)="viewGoals.emit()">Tout voir <span>→</span></button>
+    </div>
+    <div class="goal-empty" *ngIf="goals.length === 0">
+      <div class="goal-empty-icon">◎</div>
+      <strong>Tout commence par une intention.</strong>
+      <p>Définissez un objectif pour donner un cap à vos efforts.</p>
+      <button class="button button-outline" (click)="addGoal.emit()">＋ Créer un objectif</button>
+    </div>
+    <div class="goal-list" *ngIf="goals.length > 0">
+      <div class="goal-item" *ngFor="let goal of goals.slice(0, 2)">
+        <div class="goal-item-head">
+          <span class="goal-icon">◎</span>
+          <div class="goal-title-wrap">
+            <strong>{{ goal.title }}</strong
+            ><small>Échéance · {{ formatDate(goal.deadline) }}</small>
+          </div>
+          <span class="goal-percent">{{ goalProgress(goal) }}%</span>
+        </div>
+        <div class="progress-track"><span [style.width.%]="goalProgress(goal)"></span></div>
+        <div class="goal-values">
+          <span
+            >Actuel <strong>{{ goal.currentValue }} {{ goal.unit }}</strong></span
+          ><span
+            >Objectif <strong>{{ goal.targetValue }} {{ goal.unit }}</strong></span
+          >
+        </div>
+      </div>
+      <button class="add-goal-link" (click)="addGoal.emit()">＋ Ajouter un objectif</button>
+    </div>
+  </article>
+</section>
+
+<app-workouts-page
+  [workouts]="recentWorkouts"
+  [isDashboard]="true"
+  [formatDate]="formatDate"
+  [getWorkoutIcon]="getWorkoutIcon"
+  (addWorkout)="addWorkout.emit()"
+  (editWorkout)="editWorkout.emit($event)"
+  (deleteWorkout)="deleteWorkout.emit($event)"
+  (viewAll)="viewWorkouts.emit()"
+></app-workouts-page>

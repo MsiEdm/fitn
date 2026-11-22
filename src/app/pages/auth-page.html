@@ -1,0 +1,135 @@
+<section class="auth-page">
+  <div class="auth-story">
+    <a class="brand auth-brand" href="#" (click)="$event.preventDefault()">
+      <span class="brand-mark">f<span>.</span></span>
+      <span class="brand-name">forma<span>+</span><small>VOTRE ESPACE FITNESS</small></span>
+    </a>
+    <div class="auth-story-content">
+      <div class="hero-tag"><span></span> VOTRE RENDEZ-VOUS AVEC VOUS-MÊME</div>
+      <h1>Le progrès ne fait<br />pas de bruit.<br /><em>Il se construit.</em></h1>
+      <p>
+        Un espace à vous pour suivre vos séances, garder le cap et célébrer chaque petit progrès.
+      </p>
+      <div class="auth-benefits">
+        <span>✓ &nbsp;Vos entraînements au même endroit</span
+        ><span>✓ &nbsp;Des objectifs qui vous ressemblent</span
+        ><span>✓ &nbsp;Une progression qui vous appartient</span>
+      </div>
+    </div>
+    <div class="auth-story-foot">forma+ &nbsp;·&nbsp; Votre progression, à votre rythme.</div>
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+  </div>
+  <div class="auth-main">
+    <div class="auth-card">
+      <div class="auth-mobile-brand">
+        <span class="brand-mark">f<span>.</span></span
+        ><span class="brand-name">forma<span>+</span></span>
+      </div>
+      <div class="panel-kicker">
+        {{
+          verificationPending
+            ? 'VÉRIFICATION DE VOTRE ADRESSE'
+            : registerMode
+              ? 'UNE BELLE HABITUDE COMMENCE ICI'
+              : 'HEUREUX DE VOUS REVOIR'
+        }}
+      </div>
+      <h2>{{ verificationPending ? 'Vérifiez votre e-mail.' : registerMode ? 'Créez votre espace.' : 'Ravi de vous retrouver.' }}</h2>
+      <p class="auth-intro">
+        {{
+          verificationPending
+            ? 'Saisissez le code à 6 chiffres envoyé à ' + authForm.email + '.'
+            : registerMode
+              ? 'Quelques détails et votre espace personnel sera prêt.'
+              : 'Connectez-vous pour retrouver votre parcours fitness.'
+        }}
+      </p>
+      <div class="error-banner" role="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <form class="auth-form" *ngIf="!verificationPending; else verifyEmailForm" (ngSubmit)="submitAuth.emit()">
+        <label *ngIf="registerMode"
+          >Nom d’utilisateur<input
+            name="username"
+            type="text"
+            required
+            minlength="2"
+            maxlength="40"
+            autocomplete="username"
+            placeholder="Comment vous appeler ?"
+            [(ngModel)]="authForm.username"
+        /></label>
+        <label
+          >Adresse e-mail<input
+            name="email"
+            type="email"
+            required
+            maxlength="254"
+            autocomplete="email"
+            placeholder="vous@exemple.fr"
+            [(ngModel)]="authForm.email"
+        /></label>
+        <label
+          >Mot de passe<input
+            name="password"
+            type="password"
+            required
+            minlength="8"
+            maxlength="72"
+            [attr.autocomplete]="registerMode ? 'new-password' : 'current-password'"
+            placeholder="8 caractères minimum"
+            [(ngModel)]="authForm.password"
+        /></label>
+        <div class="auth-password-note" *ngIf="registerMode">
+          8 caractères minimum. Votre mot de passe est géré de façon sécurisée par Supabase.
+        </div>
+        <button class="button button-primary auth-submit" type="submit" [disabled]="requestBusy">
+          {{
+            requestBusy
+              ? 'Connexion au serveur…'
+              : registerMode
+                ? 'Créer mon compte'
+                : 'Se connecter'
+          }}<span>→</span>
+        </button>
+      </form>
+      <ng-template #verifyEmailForm>
+        <form class="auth-form" (ngSubmit)="submitAuth.emit()">
+          <label
+            >Code de vérification<input
+              name="verificationCode"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]{6}"
+              minlength="6"
+              maxlength="6"
+              required
+              placeholder="123456"
+              [(ngModel)]="verificationCode"
+              (ngModelChange)="verificationCodeChange.emit($event)"
+          /></label>
+          <button class="button button-primary auth-submit" type="submit" [disabled]="requestBusy">
+            {{ requestBusy ? 'Vérification…' : 'Vérifier mon adresse' }}<span>→</span>
+          </button>
+          <button class="auth-code-resend" type="button" [disabled]="requestBusy" (click)="resendCode.emit()">
+            Renvoyer un code
+          </button>
+        </form>
+      </ng-template>
+      <div class="auth-switch">
+        <ng-container *ngIf="verificationPending; else authModeSwitch">
+          <button type="button" (click)="cancelVerification.emit()">Modifier mon e-mail</button>
+        </ng-container>
+        <ng-template #authModeSwitch>
+          {{ registerMode ? 'Vous avez déjà un compte ?' : 'Pas encore de compte ?' }}
+          <button type="button" (click)="toggleAuthMode.emit()">
+            {{ registerMode ? 'Se connecter' : 'Créer un compte' }}
+          </button>
+        </ng-template>
+      </div>
+      <div class="auth-privacy">
+        <span>♢</span> Un compte personnel. Vos données restent les vôtres.
+      </div>
+    </div>
+  </div>
+</section>

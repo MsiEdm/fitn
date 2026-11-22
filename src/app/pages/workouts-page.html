@@ -1,0 +1,72 @@
+<section class="panel workouts-panel">
+  <div class="panel-heading">
+    <div>
+      <div class="panel-kicker">VOTRE PARCOURS</div>
+      <h3>{{ isDashboard ? 'Séances récentes' : 'Toutes mes séances' }}</h3>
+    </div>
+    <button *ngIf="isDashboard" class="text-link" (click)="viewAll.emit()">
+      Voir l’historique <span>→</span>
+    </button>
+  </div>
+  <div class="table-wrap" *ngIf="workouts.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>ACTIVITÉ</th>
+          <th>DATE</th>
+          <th>DURÉE</th>
+          <th>CALORIES</th>
+          <th>NOTES</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let workout of workouts">
+          <td>
+            <span class="activity-name"
+              ><span class="activity-icon" [ngClass]="'activity-' + workout.type.toLowerCase()">{{
+                getWorkoutIcon(workout.type)
+              }}</span
+              ><strong>{{ workout.type }}</strong></span
+            >
+          </td>
+          <td class="muted-cell">{{ formatDate(workout.date) }}</td>
+          <td>
+            <strong>{{ workout.durationMinutes }}</strong> <span class="muted-cell">min</span>
+          </td>
+          <td>
+            <strong>{{ workout.caloriesBurned | number }}</strong>
+            <span class="muted-cell">kcal</span>
+          </td>
+          <td class="notes-cell">{{ workout.notes || '—' }}</td>
+          <td>
+            <div class="row-actions">
+              <button
+                aria-label="Modifier la séance"
+                title="Modifier"
+                (click)="editWorkout.emit(workout)"
+              >
+                ✎</button
+              ><button
+                aria-label="Supprimer la séance"
+                title="Supprimer"
+                (click)="deleteWorkout.emit(workout.id)"
+              >
+                ×
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" *ngIf="workouts.length === 0">
+    <div class="empty-icon">↗</div>
+    <strong>Votre première séance vous attend.</strong>
+    <p>Ajoutez un entraînement pour commencer à suivre votre progression.</p>
+    <button class="button button-outline" (click)="addWorkout.emit()">＋ Ajouter une séance</button>
+  </div>
+  <div class="local-disclaimer">
+    Vos séances et objectifs sont synchronisés avec votre compte personnel.
+  </div>
+</section>

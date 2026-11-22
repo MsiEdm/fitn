@@ -1,0 +1,62 @@
+<section class="goals-page">
+  <div class="goal-page-heading">
+    <div>
+      <div class="panel-kicker">PETITS PAS, GRANDES VICTOIRES</div>
+      <h3>Vos objectifs personnels</h3>
+      <p>Donnez une direction à vos efforts et célébrez chaque étape.</p>
+    </div>
+    <button class="button button-primary" (click)="addGoal.emit()">
+      <span class="button-plus">＋</span> Nouvel objectif
+    </button>
+  </div>
+  <div class="goals-page-grid" *ngIf="goals.length">
+    <article class="goal-card" *ngFor="let goal of goals">
+      <div class="goal-card-top">
+        <span class="goal-icon large">◎</span>
+        <div class="goal-actions">
+          <button
+            class="delete-goal"
+            aria-label="Modifier l’objectif"
+            title="Modifier"
+            (click)="editGoal.emit(goal)"
+          >
+            ✎</button
+          ><button
+            class="delete-goal"
+            aria-label="Supprimer l’objectif"
+            title="Supprimer"
+            (click)="deleteGoal.emit(goal.id)"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <span class="goal-card-label">OBJECTIF PERSONNEL</span>
+      <h4>{{ goal.title }}</h4>
+      <div class="goal-card-progress">
+        <div class="progress-track"><span [style.width.%]="goalProgress(goal)"></span></div>
+        <strong>{{ goalProgress(goal) }}<small>%</small></strong>
+      </div>
+      <div class="goal-values">
+        <span
+          >Actuel <strong>{{ goal.currentValue }} {{ goal.unit }}</strong></span
+        ><span
+          >Cible <strong>{{ goal.targetValue }} {{ goal.unit }}</strong></span
+        >
+      </div>
+      <div class="goal-deadline">◷ &nbsp;À atteindre avant le {{ formatDate(goal.deadline) }}</div>
+    </article>
+    <button class="goal-add-card" (click)="addGoal.emit()">
+      <span>＋</span><strong>Un nouvel objectif en tête ?</strong
+      ><small>Ajoutez-le à votre parcours</small>
+    </button>
+  </div>
+  <div class="empty-state goals-empty" *ngIf="goals.length === 0">
+    <div class="empty-icon">◎</div>
+    <strong>Quelle est votre prochaine victoire ?</strong>
+    <p>Créez un objectif personnel et suivez votre évolution au fil du temps.</p>
+    <button class="button button-primary" (click)="addGoal.emit()">
+      ＋ Créer mon premier objectif
+    </button>
+  </div>
+</section>

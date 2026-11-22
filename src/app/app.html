@@ -1,101 +1,17 @@
-<section class="auth-page" *ngIf="!auth.isAuthenticated()">
-  <div class="auth-story">
-    <a class="brand auth-brand" href="#" (click)="$event.preventDefault()">
-      <span class="brand-mark">f<span>.</span></span>
-      <span class="brand-name">forma<span>+</span><small>VOTRE ESPACE FITNESS</small></span>
-    </a>
-    <div class="auth-story-content">
-      <div class="hero-tag"><span></span> VOTRE RENDEZ-VOUS AVEC VOUS-MÊME</div>
-      <h1>Le progrès ne fait<br />pas de bruit.<br /><em>Il se construit.</em></h1>
-      <p>
-        Un espace à vous pour suivre vos séances, garder le cap et célébrer chaque petit progrès.
-      </p>
-      <div class="auth-benefits">
-        <span>✓ &nbsp;Vos entraînements au même endroit</span
-        ><span>✓ &nbsp;Des objectifs qui vous ressemblent</span
-        ><span>✓ &nbsp;Une progression qui vous appartient</span>
-      </div>
-    </div>
-    <div class="auth-story-foot">forma+ &nbsp;·&nbsp; Votre progression, à votre rythme.</div>
-    <div class="auth-orb auth-orb-one"></div>
-    <div class="auth-orb auth-orb-two"></div>
-  </div>
-  <div class="auth-main">
-    <div class="auth-card">
-      <div class="auth-mobile-brand">
-        <span class="brand-mark">f<span>.</span></span
-        ><span class="brand-name">forma<span>+</span></span>
-      </div>
-      <div class="panel-kicker">
-        {{ registerMode() ? 'UNE BELLE HABITUDE COMMENCE ICI' : 'HEUREUX DE VOUS REVOIR' }}
-      </div>
-      <h2>{{ registerMode() ? 'Créez votre espace.' : 'Ravi de vous retrouver.' }}</h2>
-      <p class="auth-intro">
-        {{
-          registerMode()
-            ? 'Quelques détails et votre espace personnel sera prêt.'
-            : 'Connectez-vous pour retrouver votre parcours fitness.'
-        }}
-      </p>
-      <div class="error-banner" role="alert" *ngIf="errorMessage()">{{ errorMessage() }}</div>
-      <form class="auth-form" (ngSubmit)="submitAuth()">
-        <label *ngIf="registerMode()"
-          >Nom d’utilisateur<input
-            name="username"
-            type="text"
-            required
-            minlength="2"
-            maxlength="40"
-            autocomplete="username"
-            placeholder="Comment vous appeler ?"
-            [(ngModel)]="authForm.username"
-        /></label>
-        <label
-          >Adresse e-mail<input
-            name="email"
-            type="email"
-            required
-            maxlength="254"
-            autocomplete="email"
-            placeholder="vous@exemple.fr"
-            [(ngModel)]="authForm.email"
-        /></label>
-        <label
-          >Mot de passe<input
-            name="password"
-            type="password"
-            required
-            minlength="8"
-            maxlength="72"
-            [attr.autocomplete]="registerMode() ? 'new-password' : 'current-password'"
-            placeholder="8 caractères minimum"
-            [(ngModel)]="authForm.password"
-        /></label>
-        <div class="auth-password-note" *ngIf="registerMode()">
-          8 caractères minimum. Votre mot de passe est chiffré par le serveur.
-        </div>
-        <button class="button button-primary auth-submit" type="submit" [disabled]="requestBusy()">
-          {{
-            requestBusy()
-              ? 'Connexion au serveur…'
-              : registerMode()
-                ? 'Créer mon compte'
-                : 'Se connecter'
-          }}<span>→</span>
-        </button>
-      </form>
-      <div class="auth-switch">
-        {{ registerMode() ? 'Vous avez déjà un compte ?' : 'Pas encore de compte ?' }}
-        <button type="button" (click)="toggleAuthMode()">
-          {{ registerMode() ? 'Se connecter' : 'Créer un compte' }}
-        </button>
-      </div>
-      <div class="auth-privacy">
-        <span>♢</span> Un compte personnel. Vos données restent les vôtres.
-      </div>
-    </div>
-  </div>
-</section>
+<app-auth-page
+  *ngIf="!auth.isAuthenticated()"
+  [registerMode]="registerMode()"
+  [requestBusy]="requestBusy()"
+  [errorMessage]="errorMessage()"
+  [authForm]="authForm"
+  [verificationPending]="verificationPending()"
+  [verificationCode]="verificationCode"
+  (submitAuth)="submitAuth()"
+  (toggleAuthMode)="toggleAuthMode()"
+  (verificationCodeChange)="verificationCode = $event"
+  (resendCode)="resendVerificationCode()"
+  (cancelVerification)="cancelVerification()"
+></app-auth-page>
 
 <div class="app-shell" *ngIf="auth.isAuthenticated()">
   <aside class="sidebar" [class.sidebar-open]="mobileMenuOpen()">
@@ -187,337 +103,57 @@
         </button>
       </section>
 
-      <section class="hero-card" *ngIf="section() === 'dashboard'">
-        <div class="hero-content">
-          <div class="hero-tag"><span></span> VOTRE RENDEZ-VOUS AVEC VOUS-MÊME</div>
-          <h2>Le progrès ne fait<br />pas de bruit. <em>Il se construit.</em></h2>
-          <p>
-            Vous avez déjà accompli {{ weekWorkouts().length }} séance{{
-              weekWorkouts().length === 1 ? '' : 's'
-            }}
-            cette semaine. Gardez le rythme, vous êtes sur la bonne voie.
-          </p>
-          <button class="button button-light" (click)="openWorkout()">
-            Enregistrer ma séance <span>→</span>
-          </button>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="hero-orbit orbit-one"></div>
-          <div class="hero-orbit orbit-two"></div>
-          <div class="hero-sun"></div>
-          <div class="hero-leaf leaf-one"></div>
-          <div class="hero-leaf leaf-two"></div>
-          <div class="hero-ground"></div>
-          <div class="hero-number">01<span> / 07</span></div>
-        </div>
-        <span class="hero-decoration">✳</span>
-      </section>
+      <app-dashboard-page
+        *ngIf="section() === 'dashboard'"
+        [weekWorkoutsCount]="weekWorkouts().length"
+        [weekMinutes]="weekMinutes()"
+        [weekCalories]="weekCalories()"
+        [monthWorkoutsCount]="monthWorkouts().length"
+        [monthCalories]="monthCalories()"
+        [chartDays]="chartDays()"
+        [goals]="goals()"
+        [recentWorkouts]="recentWorkouts()"
+        [formatDate]="formatDate"
+        [getWorkoutIcon]="getWorkoutIcon"
+        [goalProgress]="goalProgress"
+        (addWorkout)="openWorkout()"
+        (addGoal)="openGoal()"
+        (editWorkout)="openWorkout($event)"
+        (deleteWorkout)="deleteWorkout($event)"
+        (viewWorkouts)="selectSection('workouts')"
+        (viewGoals)="selectSection('goals')"
+      ></app-dashboard-page>
 
-      <section class="metrics-grid" aria-label="Résumé de l’activité">
-        <article class="metric-card">
-          <div class="metric-top">
-            <span class="metric-icon peach">↗</span><span class="metric-period">CETTE SEMAINE</span>
-          </div>
-          <div class="metric-value">
-            {{ weekWorkouts().length
-            }}<small> séance{{ weekWorkouts().length === 1 ? '' : 's' }}</small>
-          </div>
-          <div class="metric-foot">
-            <span class="metric-dot green-dot"></span>{{ weekMinutes() }} min d’activité au total
-          </div>
-          <div class="metric-accent peach-accent"></div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-top">
-            <span class="metric-icon yellow">✦</span
-            ><span class="metric-period">CETTE SEMAINE</span>
-          </div>
-          <div class="metric-value">{{ weekCalories() | number }}<small> kcal</small></div>
-          <div class="metric-foot"><span class="metric-dot orange-dot"></span>Énergie dépensée</div>
-          <div class="metric-accent yellow-accent"></div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-top">
-            <span class="metric-icon lavender">◎</span><span class="metric-period">CE MOIS-CI</span>
-          </div>
-          <div class="metric-value">
-            {{ monthWorkouts().length
-            }}<small> séance{{ monthWorkouts().length === 1 ? '' : 's' }}</small>
-          </div>
-          <div class="metric-foot">
-            <span class="metric-dot purple-dot"></span>{{ monthCalories() | number }} kcal brûlées
-          </div>
-          <div class="metric-accent lavender-accent"></div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-top">
-            <span class="metric-icon mint">◷</span
-            ><span class="metric-period">TEMPS TOTAL · SEMAINE</span>
-          </div>
-          <div class="metric-value">{{ weekMinutes() }}<small> min</small></div>
-          <div class="metric-foot">
-            <span class="metric-dot green-dot"></span>Temps en mouvement enregistré
-          </div>
-          <div class="metric-accent mint-accent"></div>
-        </article>
-      </section>
+      <app-workouts-page
+        *ngIf="section() === 'workouts'"
+        [workouts]="workouts()"
+        [isDashboard]="false"
+        [formatDate]="formatDate"
+        [getWorkoutIcon]="getWorkoutIcon"
+        (addWorkout)="openWorkout()"
+        (editWorkout)="openWorkout($event)"
+        (deleteWorkout)="deleteWorkout($event)"
+      ></app-workouts-page>
 
-      <section class="dashboard-grid" *ngIf="section() === 'dashboard' || section() === 'stats'">
-        <article class="panel activity-panel">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-kicker">VOTRE CONSTANCE</div>
-              <h3>Temps d’activité</h3>
-            </div>
-            <span class="period-pill">Cette semaine <span>⌄</span></span>
-          </div>
-          <div class="chart-summary">
-            <strong>{{ weekMinutes() }}<small> min</small></strong
-            ><span>au total cette semaine</span>
-          </div>
-          <div class="activity-chart">
-            <div class="chart-grid">
-              <span>60</span><span>45</span><span>30</span><span>15</span><span>0</span>
-            </div>
-            <div class="chart-bars">
-              <div class="bar-column" *ngFor="let day of chartDays()">
-                <div class="bar-track">
-                  <div
-                    class="bar-fill"
-                    [class.bar-today]="day.isToday"
-                    [style.height.%]="day.height"
-                  ></div>
-                </div>
-                <span [class.today-label-chart]="day.isToday">{{ day.label }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="chart-legend"><span></span> Minutes d’entraînement</div>
-        </article>
+      <app-goals-page
+        *ngIf="section() === 'goals'"
+        [goals]="goals()"
+        [formatDate]="formatDate"
+        [goalProgress]="goalProgress"
+        (addGoal)="openGoal()"
+        (editGoal)="openGoal($event)"
+        (deleteGoal)="deleteGoal($event)"
+      ></app-goals-page>
 
-        <article class="panel goals-panel">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-kicker">CAP SUR VOS ENVIES</div>
-              <h3>Objectifs en cours</h3>
-            </div>
-            <button class="text-link" (click)="selectSection('goals')">
-              Tout voir <span>→</span>
-            </button>
-          </div>
-          <div class="goal-empty" *ngIf="goals().length === 0">
-            <div class="goal-empty-icon">◎</div>
-            <strong>Tout commence par une intention.</strong>
-            <p>Définissez un objectif pour donner un cap à vos efforts.</p>
-            <button class="button button-outline" (click)="openGoal()">＋ Créer un objectif</button>
-          </div>
-          <div class="goal-list" *ngIf="goals().length > 0">
-            <div class="goal-item" *ngFor="let goal of goals().slice(0, 2)">
-              <div class="goal-item-head">
-                <span class="goal-icon">◎</span>
-                <div class="goal-title-wrap">
-                  <strong>{{ goal.title }}</strong
-                  ><small>Échéance · {{ formatDate(goal.deadline) }}</small>
-                </div>
-                <span class="goal-percent">{{ goalProgress(goal) }}%</span>
-              </div>
-              <div class="progress-track"><span [style.width.%]="goalProgress(goal)"></span></div>
-              <div class="goal-values">
-                <span
-                  >Actuel <strong>{{ goal.currentValue }} {{ goal.unit }}</strong></span
-                ><span
-                  >Objectif <strong>{{ goal.targetValue }} {{ goal.unit }}</strong></span
-                >
-              </div>
-            </div>
-            <button class="add-goal-link" (click)="openGoal()">＋ Ajouter un objectif</button>
-          </div>
-        </article>
-      </section>
-
-      <section
-        class="panel workouts-panel"
-        *ngIf="section() === 'dashboard' || section() === 'workouts'"
-      >
-        <div class="panel-heading">
-          <div>
-            <div class="panel-kicker">VOTRE PARCOURS</div>
-            <h3>{{ section() === 'workouts' ? 'Toutes mes séances' : 'Séances récentes' }}</h3>
-          </div>
-          <button
-            *ngIf="section() === 'dashboard'"
-            class="text-link"
-            (click)="selectSection('workouts')"
-          >
-            Voir l’historique <span>→</span>
-          </button>
-        </div>
-        <div class="table-wrap" *ngIf="workouts().length > 0">
-          <table>
-            <thead>
-              <tr>
-                <th>ACTIVITÉ</th>
-                <th>DATE</th>
-                <th>DURÉE</th>
-                <th>CALORIES</th>
-                <th>NOTES</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let workout of section() === 'dashboard' ? recentWorkouts() : workouts()">
-                <td>
-                  <span class="activity-name"
-                    ><span
-                      class="activity-icon"
-                      [ngClass]="'activity-' + workout.type.toLowerCase()"
-                      >{{ getWorkoutIcon(workout.type) }}</span
-                    ><strong>{{ workout.type }}</strong></span
-                  >
-                </td>
-                <td class="muted-cell">{{ formatDate(workout.date) }}</td>
-                <td>
-                  <strong>{{ workout.durationMinutes }}</strong> <span class="muted-cell">min</span>
-                </td>
-                <td>
-                  <strong>{{ workout.caloriesBurned | number }}</strong>
-                  <span class="muted-cell">kcal</span>
-                </td>
-                <td class="notes-cell">{{ workout.notes || '—' }}</td>
-                <td>
-                  <div class="row-actions">
-                    <button
-                      aria-label="Modifier la séance"
-                      title="Modifier"
-                      (click)="openWorkout(workout)"
-                    >
-                      ✎</button
-                    ><button
-                      aria-label="Supprimer la séance"
-                      title="Supprimer"
-                      (click)="deleteWorkout(workout.id)"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="empty-state" *ngIf="workouts().length === 0">
-          <div class="empty-icon">↗</div>
-          <strong>Votre première séance vous attend.</strong>
-          <p>Ajoutez un entraînement pour commencer à suivre votre progression.</p>
-          <button class="button button-outline" (click)="openWorkout()">
-            ＋ Ajouter une séance
-          </button>
-        </div>
-        <div class="local-disclaimer">
-          Vos séances et objectifs sont synchronisés avec votre compte personnel.
-        </div>
-      </section>
-
-      <section class="goals-page" *ngIf="section() === 'goals'">
-        <div class="goal-page-heading">
-          <div>
-            <div class="panel-kicker">PETITS PAS, GRANDES VICTOIRES</div>
-            <h3>Vos objectifs personnels</h3>
-            <p>Donnez une direction à vos efforts et célébrez chaque étape.</p>
-          </div>
-          <button class="button button-primary" (click)="openGoal()">
-            <span class="button-plus">＋</span> Nouvel objectif
-          </button>
-        </div>
-        <div class="goals-page-grid" *ngIf="goals().length">
-          <article class="goal-card" *ngFor="let goal of goals()">
-            <div class="goal-card-top">
-              <span class="goal-icon large">◎</span>
-              <div class="goal-actions">
-                <button
-                  class="delete-goal"
-                  aria-label="Modifier l’objectif"
-                  title="Modifier"
-                  (click)="openGoal(goal)"
-                >
-                  ✎</button
-                ><button
-                  class="delete-goal"
-                  aria-label="Supprimer l’objectif"
-                  title="Supprimer"
-                  (click)="deleteGoal(goal.id)"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-            <span class="goal-card-label">OBJECTIF PERSONNEL</span>
-            <h4>{{ goal.title }}</h4>
-            <div class="goal-card-progress">
-              <div class="progress-track"><span [style.width.%]="goalProgress(goal)"></span></div>
-              <strong>{{ goalProgress(goal) }}<small>%</small></strong>
-            </div>
-            <div class="goal-values">
-              <span
-                >Actuel <strong>{{ goal.currentValue }} {{ goal.unit }}</strong></span
-              ><span
-                >Cible <strong>{{ goal.targetValue }} {{ goal.unit }}</strong></span
-              >
-            </div>
-            <div class="goal-deadline">
-              ◷ &nbsp;À atteindre avant le {{ formatDate(goal.deadline) }}
-            </div>
-          </article>
-          <button class="goal-add-card" (click)="openGoal()">
-            <span>＋</span><strong>Un nouvel objectif en tête ?</strong
-            ><small>Ajoutez-le à votre parcours</small>
-          </button>
-        </div>
-        <div class="empty-state goals-empty" *ngIf="goals().length === 0">
-          <div class="empty-icon">◎</div>
-          <strong>Quelle est votre prochaine victoire ?</strong>
-          <p>Créez un objectif personnel et suivez votre évolution au fil du temps.</p>
-          <button class="button button-primary" (click)="openGoal()">
-            ＋ Créer mon premier objectif
-          </button>
-        </div>
-      </section>
-
-      <section class="stats-extra" *ngIf="section() === 'stats'">
-        <div class="stats-note">
-          <span>✦</span>
-          <div>
-            <strong>La régularité, votre meilleure alliée.</strong>
-            <p>
-              Chaque séance enregistrée nourrit ces statistiques. Revenez régulièrement pour
-              observer votre progression.
-            </p>
-          </div>
-        </div>
-        <article class="panel stats-list-panel">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-kicker">CE MOIS-CI</div>
-              <h3>Votre bilan mensuel</h3>
-            </div>
-          </div>
-          <div class="monthly-stats">
-            <div>
-              <span>Entraînements</span><strong>{{ monthWorkouts().length }}</strong>
-            </div>
-            <div>
-              <span>Calories brûlées</span
-              ><strong>{{ monthCalories() | number }} <small>kcal</small></strong>
-            </div>
-            <div>
-              <span>Temps d’activité</span><strong>{{ monthMinutes() }} <small>min</small></strong>
-            </div>
-            <div>
-              <span>Objectifs actifs</span><strong>{{ goals().length }}</strong>
-            </div>
-          </div>
-        </article>
-      </section>
+      <app-stats-page
+        *ngIf="section() === 'stats'"
+        [weekMinutes]="weekMinutes()"
+        [chartDays]="chartDays()"
+        [monthWorkoutsCount]="monthWorkouts().length"
+        [monthCalories]="monthCalories()"
+        [monthMinutes]="monthMinutes()"
+        [goalCount]="goals().length"
+      ></app-stats-page>
     </div>
     <footer class="footer">
       <span>forma<span>+</span> &nbsp;·&nbsp; Votre progression, à votre rythme.</span
