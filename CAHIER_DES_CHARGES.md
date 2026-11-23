@@ -2,7 +2,7 @@
 
 **Projet :** application de suivi fitness  
 **Version :** 1.0  
-**Date :** 22 novembre 2026  
+**Date :** 22 novembre 2026  dis
 **Statut :** application web Angular connectée à Supabase
 
 ## 1. Présentation du projet
